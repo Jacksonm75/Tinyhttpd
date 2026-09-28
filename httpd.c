@@ -27,6 +27,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define HTTPD_DEBUG(fmt, ...) do { \
+    fprintf(stderr, "[%s():%d]:" fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+} while (0)
+
 #define ISspace(x) isspace((int)(x))
 
 #define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
@@ -54,6 +58,7 @@ void unimplemented(int);
 /**********************************************************************/
 void accept_request(void *arg)
 {
+    pthread_detach(pthread_self());
     int client = (intptr_t)arg;
     char buf[1024];
     size_t numchars;
@@ -279,7 +284,7 @@ void execute_cgi(int client, const char *path,
             sprintf(length_env, "CONTENT_LENGTH=%d", content_length);
             putenv(length_env);
         }
-        execl(path, NULL);
+        execl(path, path, NULL);
         exit(0);
     } else {    /* parent */
         close(cgi_output[1]);
@@ -505,7 +510,6 @@ int main(void)
                 &client_name_len);
         if (client_sock == -1)
             error_die("accept");
-        /* accept_request(&client_sock); */
         if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)(intptr_t)client_sock) != 0)
             perror("pthread_create");
     }

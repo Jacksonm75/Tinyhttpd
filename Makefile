@@ -5,5 +5,9 @@ httpd: httpd.c
 
 client: simpleclient.c
 	gcc -W -Wall -o $@ $<
-clean:
+clean-httpd:
 	rm httpd
+clean-client:
+	rm client
+clean:
+	rm httpd client
